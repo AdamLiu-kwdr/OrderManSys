@@ -42,17 +42,24 @@ namespace OrderManSys.Controllers
         [HttpPost]
         public IActionResult Create([FromBody][Bind("Product,Quantity,FinishTime,OrderName")] Orders order)
         {
-            if (!ModelState.IsValid) //Check the Model Binding 
+            //Check the Model Binding 
+            if (!ModelState.IsValid) 
             {
-                return BadRequest(ModelState); //Return 403 If model binding failed failed.
+                //Return 403 If model binding failed failed.
+                return BadRequest(ModelState); 
             }
-            order.OrderTime= DateTime.Now;
+
+            //Creating custom Datetime.Now Because Dapper will drop ticks when converting Datetime
+            //need better soulution.
+            DateTime TheUnwated = DateTime.Now.Date.AddHours(DateTime.Now.Hour).AddMinutes(DateTime.Now.Minute).AddSeconds(DateTime.Now.Second);
+
+            //Complete rows in Orders.
+            order.OrderTime= TheUnwated;
             order.Finished=false;
             orderRepo.InsertNew(order);
-            //Because Dapper will drop milin seconds when converting Datetime
-            //So this need better work.
-            DateTime TheUnwated = order.OrderTime.Date.AddHours(order.OrderTime.Minute).AddMinutes(order.OrderTime.Minute).AddSeconds(order.OrderTime.Second);
-            return Created($"/Order/{orderRepo.FindId(order.OrderName,TheUnwated)}", null); //Return the created object as responce. 
+            
+            //Return the created object index as responce. 
+            return Created($"/Order/{orderRepo.FindId(order.OrderName,order.OrderTime)}", null);
         }
     }
 }
