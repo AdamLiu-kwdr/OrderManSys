@@ -8,6 +8,9 @@ using OrderManSys.Repository;
 
 namespace OrderManSys.Controllers
 {
+    //This Controller is for Creating/query orders from database.
+    //Processing incoming API call.
+
     [Route("[controller]")]
     public class OrdersController : Controller
     {

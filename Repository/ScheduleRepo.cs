@@ -8,6 +8,8 @@ using OrderManSys.Model;
 
 namespace OrderManSys.Repository
 {
+    //This class is for accessing Factory.Schedule in database. Using Schedule model class.
+    //For providing unified access to database for whole system.
     public class ScheduleRepo
     {
         

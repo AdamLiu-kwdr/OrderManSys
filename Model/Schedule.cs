@@ -1,7 +1,7 @@
 using System;
 using OrderManSys.Model;
 
-//Model class for Factory.Order in database
+//Model class for Factory.Schedule in database
 
 namespace OrderManSys.Model
 {

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
+//Test Controller from asp.net templete, NOT PART OF DEVELOPEMENT PLAN. 
+//will remove later.
+
 namespace OrderManSys.Controllers
 {
     [Route("api/[controller]")]

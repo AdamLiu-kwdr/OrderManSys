@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OrderManSys.Model;
 
-//This Engine will accept Orders passed in and create Schedules based on conditions.
-
+//This is the actual Scheduling engine code.
+//Engine will accept Orders passed in and create Schedules based on conditions.
 namespace Scheduling_Engine.Sequence
 {
     public class SequenceEngine

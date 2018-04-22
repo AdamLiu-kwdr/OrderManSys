@@ -7,6 +7,7 @@ using Dapper;
 using OrderManSys.Model;
 
 //This class is for accessing Factory.Orders in database. Using Orders model class.
+//For providing unified access to database for whole system.
 
 namespace OrderManSys.Repository
 {

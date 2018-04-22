@@ -2,7 +2,7 @@ using System;
 using System.Data;
 using System.ComponentModel.DataAnnotations;
 
-//Model class for Factory.Order in database
+//Model class for Factory.Product in database
 
 namespace OrderManSys.Model
 {
