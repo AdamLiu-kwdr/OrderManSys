@@ -5,7 +5,7 @@ using OrderManSys.Model;
 
 //This is the actual Scheduling engine code.
 //Engine will accept Orders passed in and create Schedules based on conditions.
-namespace Scheduling_Engine.Sequence
+namespace OrderManSys.Sequence
 {
     public class SequenceEngine
     {

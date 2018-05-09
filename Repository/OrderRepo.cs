@@ -11,7 +11,7 @@ using OrderManSys.Model;
 
 namespace OrderManSys.Repository
 {
-    public class OrderRepo
+    public class OrderRepo 
     {
         //Creating Connection string. 
         private string ConnectionString;
@@ -30,7 +30,7 @@ namespace OrderManSys.Repository
         }
 
         
-        //Will return ALL records in table  
+        //Return ALL records in the Order table.
         public IEnumerable<Orders> GetAll()
         {
             using (IDbConnection dbConnection = Connection)
@@ -54,28 +54,65 @@ namespace OrderManSys.Repository
             }
         }
 
-        //Find the Id based on Order's name and order time, throw exception if nothing found.
-        //If looking for an Order Object, call it as nested function. like this: OrderRepo.GetById(OrderRepo.FindId(Odername,Ordertime))
-        public int FindId(string Ordername,DateTime Ordertime)
+        /* 
+        Query the database with dynamically selected column
+        When calling this function, create an dictionary contains <Column name string,Querry value object> as Querry Parameters.
+        
+        For example:
+        var Parameters = new Dictionary<string,object>();
+        Parameters.Add("Ordertime",DateTime.Parse("2018-04-25"));
+
+        DO NOT expose this function!
+        */
+        public IEnumerable<Orders> Get(Dictionary<string,object> WhereParameters)
         {
             using(IDbConnection dbConnection = Connection)
             {
-                string sQuerry = "SELECT Id FROM Orders Where OrderName = @OrderName and OrderTime = @OrderTime";
+                //Create the sql querry dynamically, this is the starter.
+                string sQuerry = $"SELECT * FROM Orders";
+                //The parameters to be added to the querry later.
+                DynamicParameters dp = new DynamicParameters();
+
+                /* 
+                Unboxing the Dictionary, for every keyPair in dictionary create a new parameter in dp, name it as keyPair's key.
+                then add a new where clause to the query "Where keyPair.keyname = @keypair.keyname"
+                Finally check if current pair is the last pair in dictionary, if not put a "AND" between current and next where clause. 
+                */
+                var last = WhereParameters.Last();
+                foreach (var item in WhereParameters)
+                {
+                    sQuerry = sQuerry + $" Where {item.Key} = @{item.Key}";//new where clause.
+                    dp.Add($"{item.Key}",item.Value);//add new parameter in dp
+                    if (item.Key != last.Key) //No dulpicated key will occur because every key in dictionary is unique (C# rule)
+                    {
+                        sQuerry = sQuerry + " AND";
+                    }
+                }
+                
                 dbConnection.Open();
-                return dbConnection.Query<int>(sQuerry,new{OrderName = Ordername,OrderTime=Ordertime}).First();
-                //Find the Id based on name and order time.
+                return dbConnection.Query<Orders>(sQuerry,dp).ToList();
             }
         }
 
 
-
-        public void InsertNew(Orders order)
+        //Place a new order.
+        public void Create(Orders entity)
         {
             using(IDbConnection dbConnection = Connection)
             {
                 string sQuerry = "Insert Into Orders(Product,Quantity,FinishTime,OrderName,OrderTime,Finished) " +
                     "Values (@Product,@Quantity,@FinishTime,@OrderName,@OrderTime,@Finished)";
-                dbConnection.Execute(sQuerry,order);
+                dbConnection.Execute(sQuerry,entity);
+            }
+        }
+
+        //Delete a order (Need test!) (Should I change to "IsDeleted?")
+        public void Delete(int id)
+        {
+            using(IDbConnection dbConnection = Connection)
+            {
+                string sQuerry = "DELETE from Orders where id = @Id";
+                dbConnection.Execute(sQuerry,new{Id = id});
             }
         }
     }

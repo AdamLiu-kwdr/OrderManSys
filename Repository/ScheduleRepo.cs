@@ -28,9 +28,43 @@ namespace OrderManSys.Repository
             }
         }
 
+        //Will return ALL records in table  
+        public IEnumerable<Schedule> GetAll()
+        {
+            using(IDbConnection dbConnection = Connection)
+            {
+                dbConnection.Open();
+                return dbConnection.Query<Schedule>("SELECT * FROM Schedule"); 
+                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Schedule>. 
+            }
+        }
 
-        //Write all the schedule records back to database.
-        public void WriteAll(IEnumerable<Schedule> ScheduleList)
+        //Return single Schedule accroding to id.
+        public Schedule GetById(int Id)
+        {
+            using(IDbConnection dbConnection = Connection)
+            {
+                string sQuerry = "SELECT * FROM Schedule Where Id = @ID";
+                dbConnection.Open();
+                return dbConnection.Query<Schedule>(sQuerry,new{ID = Id}).FirstOrDefault();
+                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Schedule>. 
+            }
+        }
+
+        //Write a single schedule records back to database.
+        public void Create(Schedule schedule)
+        {
+            using (IDbConnection dbconnection = Connection)
+            {
+                dbconnection.Open();
+                //SQL querry, using Insert satatment to create records. (ID NEEDS TO START FROM 1!)
+                string sqlstr="INSERT INTO Schedule(Id,Quantity,Working,OrderId) VALUES (@Id,@Quantity,@Working,@OrderId);";
+                dbconnection.Execute(sqlstr,schedule);
+            }
+        }
+
+        //Overloaded function. Write all the schedule records back to database.
+        public void Create(IEnumerable<Schedule> ScheduleList)
         {
             using (IDbConnection dbconnection = Connection)
             {
@@ -41,8 +75,18 @@ namespace OrderManSys.Repository
             }
         }
 
-        //Use with caution!
-        public void DeleteAll()
+        //Delete an single schedule (Need test!)
+        public void Delete(int id)
+        {
+            using(IDbConnection dbConnection = Connection)
+            {
+                string sQuerry = "DELETE from Schedule where id = @Id";
+                dbConnection.Execute(sQuerry,new{Id = id});
+            }
+        }
+
+        //Extended function, Use with caution!
+        public void DropAll()
         {
             using (IDbConnection dbconnection = Connection)
             {

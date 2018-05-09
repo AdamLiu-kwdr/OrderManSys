@@ -5,10 +5,11 @@ using System.Linq;
 using MySql.Data.MySqlClient;
 using Dapper;
 using OrderManSys.Model;
+using OrderManSys.Repository;
 
 //This class is for accessing Factory.Orders in database. Using Orders model class. !Class will be renamed in future!
 
-namespace OrderManSys.Repository
+namespace OrderManSys.Repository 
 {
     public class ProductRepo
     {
@@ -29,7 +30,7 @@ namespace OrderManSys.Repository
         }
 
         //Will return ALL records in table  
-        public IEnumerable<Product> Getall()
+        public IEnumerable<Product> GetAll()
         {
             using(IDbConnection dbConnection = Connection)
             {
@@ -50,5 +51,7 @@ namespace OrderManSys.Repository
                 //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Product>. 
             }
         }
+
+
     }
 }

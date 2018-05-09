@@ -2,25 +2,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using OrderManSys.Model;
 using OrderManSys.Repository;
+using OrderManSys.Sequence;
 
 namespace OrderManSys.Controllers
 {
     //This Controller is for Creating/query orders from database.
     //Processing incoming API call.
 
+    /*
+    Functions:
+    GetAll  [Get] Order
+    GetByid [Get] Order/id
+    Create [Post] Order/Create
+    (Test) Dynamic [Get] Order/Dynamic
+    */
+
     [Route("[controller]")]
     public class OrdersController : Controller
     {
         //Depandancy Injection. Injecting OderRepo in Repository folder.
         private readonly OrderRepo orderRepo;
-        private readonly ScheduleRepo scheduleRepo;
         public OrdersController() //Class constructer
         {
             orderRepo = new OrderRepo();
-            scheduleRepo = new ScheduleRepo();
         }
 
         // [Get]/Order  Get all the Current Orders
@@ -48,21 +56,35 @@ namespace OrderManSys.Controllers
             //Check the Model Binding 
             if (!ModelState.IsValid) 
             {
-                //Return 403 If model binding failed failed.
+                //Return 403 If model binding failed.
                 return BadRequest(ModelState); 
             }
 
-            //Creating custom Datetime.Now Because Dapper will drop ticks when converting Datetime
-            //need better soulution.
+            //Creating custom Datetime.Now Because Dapper will drop ticks when converting Datetime, causing error. >Need better soulution.
             DateTime TheUnwated = DateTime.Now.Date.AddHours(DateTime.Now.Hour).AddMinutes(DateTime.Now.Minute).AddSeconds(DateTime.Now.Second);
 
-            //Complete rows in Orders.
+            //Complete the rest of rows in Orders.
             order.OrderTime= TheUnwated;
             order.Finished=false;
-            orderRepo.InsertNew(order);
+            orderRepo.Create(order);
+
+            //Find the newly created order by using orderRepo.Get(WhereParameters)
+            var Parameters = new Dictionary<string,object>();
+            Parameters.Add("OrderTime",order.OrderTime);
+            Parameters.Add("OrderName",order.OrderName);
+            return Created($"/Order/{orderRepo.Get(Parameters).First().Id}", null);
             
-            //Return the created object index as responce. 
-            return Created($"/Order/{orderRepo.FindId(order.OrderName,order.OrderTime)}", null);
         }
+        
+        //Testing function for orderRepo's dynamic query.
+        [HttpGet("Dynamic")]
+        public IEnumerable<Orders> Get()
+        {
+            var Parameters = new Dictionary<string,object>();
+            Parameters.Add("Finished",true);
+
+            return orderRepo.Get(Parameters);
+        }
+        
     }
 }
