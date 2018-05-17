@@ -2,6 +2,11 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
+using OrderManSys.Model;
+using System.Collections.Generic;
+using System.Linq;
+using OrderManSys.Blueprint;
+using OrderManSys.Repository;
 
 namespace OrderManSys.Controllers
 {
@@ -9,6 +14,15 @@ namespace OrderManSys.Controllers
     [Route("[controller]")]
     public class EmitterController : Controller
     {
+        [HttpGet("Instruct")]
+        //Test Method
+        public IEnumerable<Instruction> Get()
+        {
+            var product = new ProductRepo();
+            var blue = new BlueprintEngine();
+            return blue.GetRegistred(product.GetbyId(1));
+        }
+
         //Using HttpClient class to send http request. Unified string method will be studied later.
         //private static readonly HttpClient client = new HttpClient{BaseAddress=new Uri("")};
         //Location:[Host]/Emitter/CheckService

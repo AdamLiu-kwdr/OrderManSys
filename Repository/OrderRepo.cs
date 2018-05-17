@@ -29,16 +29,18 @@ namespace OrderManSys.Repository
             }
         }
 
-        
         //Return ALL records in the Order table.
         public IEnumerable<Orders> GetAll()
         {
             using (IDbConnection dbConnection = Connection)
             {
-                string sQuerry="SELECT * FROM Orders";
-                dbConnection.Open();
-                return dbConnection.Query<Orders>(sQuerry);
-                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>. 
+            //Selecting Orders with it's corresponding parent table Products.
+            string sQuerry=@"select O.Quantity,O.FinishTime,O.OrderTime,O.OrderName,O.Finished,O.Id,
+                P.Id, P.ProductName,P.Description,P.Price from Orders O Inner JOIN Product P on O.Product=P.Id";
+            dbConnection.Open();
+            //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>, 
+            //Plus single Child object <Product> 
+            return dbConnection.Query<Orders,Product,Orders>(sQuerry,(O,P)=>{O.product=P;return O;},splitOn:"Id").AsEnumerable();
             }
         }
 
@@ -47,9 +49,13 @@ namespace OrderManSys.Repository
         {
             using(IDbConnection dbConnection = Connection)
             {
-                string sQuerry = "SELECT * FROM Orders Where Id = @ID";
+                //Selecting Orders with it's corresponding parent table Products, with WHERE clause.
+                string sQuerry = @"select O.Quantity,O.FinishTime,O.OrderTime,O.OrderName,O.Finished,O.Id,
+                P.Id, P.ProductName,P.Description,P.Price from Orders O Inner JOIN Product P on O.Product=P.Id WHERE O.Id = @OrderID";
                 dbConnection.Open();
-                return dbConnection.Query<Orders>(sQuerry,new{ID = id}).FirstOrDefault();
+                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>, 
+                //Plus single Child object <Product> 
+                return dbConnection.Query<Orders,Product,Orders>(sQuerry,(O,P)=>{O.product=P;return O;},new{OrderID = id},splitOn:"Id").FirstOrDefault();
                 //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>.
             }
         }
@@ -66,10 +72,16 @@ namespace OrderManSys.Repository
         */
         public IEnumerable<Orders> Get(Dictionary<string,object> WhereParameters)
         {
+            if (WhereParameters.Count == 0)
+            {
+                //throw exception if empty Dictionary is passed in (consider use GetAll()?)
+                throw new ArgumentNullException();
+            }
             using(IDbConnection dbConnection = Connection)
             {
                 //Create the sql querry dynamically, this is the starter.
-                string sQuerry = $"SELECT * FROM Orders";
+                string sQuerry = @"select O.Quantity,O.FinishTime,O.OrderTime,O.OrderName,O.Finished,O.Id,
+                P.Id, P.ProductName,P.Description,P.Price from Orders O Inner JOIN Product P on O.Product=P.Id Where";
                 //The parameters to be added to the querry later.
                 DynamicParameters dp = new DynamicParameters();
 
@@ -81,16 +93,16 @@ namespace OrderManSys.Repository
                 var last = WhereParameters.Last();
                 foreach (var item in WhereParameters)
                 {
-                    sQuerry = sQuerry + $" Where {item.Key} = @{item.Key}";//new where clause.
+                    sQuerry = sQuerry + $" O.{item.Key} = @{item.Key}";//new where clause.
                     dp.Add($"{item.Key}",item.Value);//add new parameter in dp
                     if (item.Key != last.Key) //No dulpicated key will occur because every key in dictionary is unique (C# rule)
                     {
                         sQuerry = sQuerry + " AND";
                     }
                 }
-                
+                //Console.WriteLine("[Debug](Querry):"+sQuerry);
                 dbConnection.Open();
-                return dbConnection.Query<Orders>(sQuerry,dp).ToList();
+                return dbConnection.Query<Orders,Product,Orders>(sQuerry,(O,P)=>{O.product=P;return O;},dp,splitOn:"Id").ToList();
             }
         }
 
@@ -100,9 +112,18 @@ namespace OrderManSys.Repository
         {
             using(IDbConnection dbConnection = Connection)
             {
+                //
                 string sQuerry = "Insert Into Orders(Product,Quantity,FinishTime,OrderName,OrderTime,Finished) " +
-                    "Values (@Product,@Quantity,@FinishTime,@OrderName,@OrderTime,@Finished)";
-                dbConnection.Execute(sQuerry,entity);
+                    $"Values (@ProductId,@Quantity,@FinishTime,@OrderName,@OrderTime,@Finished)";
+                dbConnection.Execute(sQuerry,new
+                {   //Custom Parameters set.
+                    Quantity = entity.Quantity,
+                    FinishTime = entity.FinishTime,
+                    OrderName = entity.OrderName,
+                    OrderTime = entity.OrderTime,
+                    Finished = entity.Finished,
+                    ProductId = entity.product.Id
+                });
             }
         }
 

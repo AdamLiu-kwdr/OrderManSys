@@ -33,8 +33,10 @@ namespace OrderManSys.Repository
         {
             using(IDbConnection dbConnection = Connection)
             {
+                string sQuerry = @"SELECT S.Working,S.OrderId,S.Id,O.Id,O.Quantity,O.FinishTime,O.OrderTime,O.Finished,O.OrderName from Schedule S
+                    INNER JOIN Orders O ON S.OrderId = O.Id";
                 dbConnection.Open();
-                return dbConnection.Query<Schedule>("SELECT * FROM Schedule"); 
+                return dbConnection.Query<Schedule,Orders,Schedule>(sQuerry,(S,O)=>{S.Orders=O;return S;},splitOn:"Id").AsEnumerable(); 
                 //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Schedule>. 
             }
         }
@@ -44,9 +46,10 @@ namespace OrderManSys.Repository
         {
             using(IDbConnection dbConnection = Connection)
             {
-                string sQuerry = "SELECT * FROM Schedule Where Id = @ID";
+                string sQuerry = @"SELECT S.Working,S.OrderId,S.Id,O.Id,O.Quantity,O.FinishTime,O.OrderTime,O.Finished,O.OrderName from Schedule S
+                    INNER JOIN Orders O ON S.OrderId = O.Id WHERE S.Id = @SchId";
                 dbConnection.Open();
-                return dbConnection.Query<Schedule>(sQuerry,new{ID = Id}).FirstOrDefault();
+                return dbConnection.Query<Schedule>(sQuerry,new{SchId = Id}).FirstOrDefault();
                 //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Schedule>. 
             }
         }
@@ -58,8 +61,13 @@ namespace OrderManSys.Repository
             {
                 dbconnection.Open();
                 //SQL querry, using Insert satatment to create records. (ID NEEDS TO START FROM 1!)
-                string sqlstr="INSERT INTO Schedule(Id,Quantity,Working,OrderId) VALUES (@Id,@Quantity,@Working,@OrderId);";
-                dbconnection.Execute(sqlstr,schedule);
+                string sqlstr="INSERT INTO Schedule(Id,Working,OrderId) VALUES (@Id,@Working,@OrderId);";
+                dbconnection.Execute(sqlstr,new
+                {   //Custom Parameters set.
+                    Id = schedule.Id,
+                    Working = schedule.Working,
+                    OrderId = schedule.Orders.Id
+                });
             }
         }
 
@@ -68,10 +76,22 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbconnection = Connection)
             {
+                List<object> Parameters = new List<object>();
+                foreach (var schedule in ScheduleList)
+                {
+                    Parameters.Add(new
+                    {   
+                        //Custom Parameters set.
+                        Id = schedule.Id,
+                        Working = schedule.Working,
+                        OrderId = schedule.Orders.Id
+                    });
+                }
+
                 dbconnection.Open();
                 //SQL querry, using Insert satatment to create records. (ID NEEDS TO START FROM 1!)
-                string sqlstr="INSERT INTO Schedule(Id,Quantity,Working,OrderId) VALUES (@Id,@Quantity,@Working,@OrderId);";
-                dbconnection.Execute(sqlstr,ScheduleList);
+                string sqlstr="INSERT INTO Schedule(Id,Working,OrderId) VALUES (@Id,@Working,@OrderId);";
+                dbconnection.Execute(sqlstr,Parameters);
             }
         }
 

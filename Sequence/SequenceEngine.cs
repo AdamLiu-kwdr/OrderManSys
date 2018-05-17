@@ -17,8 +17,6 @@ namespace OrderManSys.Sequence
             {
                 ScheduleList.Add(new Schedule{
                     Id = CurrentOrders.IndexOf(ThisOrder)+1,
-                    Quantity = ThisOrder.Quantity,
-                    OrderId = ThisOrder.Id,
                     Working = false,
                     Orders = ThisOrder
                 });

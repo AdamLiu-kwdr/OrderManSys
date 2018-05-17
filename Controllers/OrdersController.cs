@@ -51,7 +51,7 @@ namespace OrderManSys.Controllers
         Make sure setting Content-type header to application/json.
          */
         [HttpPost]
-        public IActionResult Create([FromBody][Bind("Product,Quantity,FinishTime,OrderName")] Orders order)
+        public IActionResult Create([FromBody][Bind("Quantity,FinishTime,OrderName,Product.Id")] Orders order)
         {
             //Check the Model Binding 
             if (!ModelState.IsValid) 
@@ -72,7 +72,7 @@ namespace OrderManSys.Controllers
             var Parameters = new Dictionary<string,object>();
             Parameters.Add("OrderTime",order.OrderTime);
             Parameters.Add("OrderName",order.OrderName);
-            return Created($"/Order/{orderRepo.Get(Parameters).First().Id}", null);
+            return Created($"/Orders/{orderRepo.Get(Parameters).First().Id}", null);
             
         }
         

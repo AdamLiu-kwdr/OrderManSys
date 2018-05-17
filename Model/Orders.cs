@@ -10,7 +10,6 @@ namespace OrderManSys.Model
     {
         public int Id{get;set;} //Primary Key
         [Required] //ModelBinding Valdiation
-        public string Product{get; set;} //Should be ProductName, Later on will add in reference to actual Product
         public int Quantity{get; set;}
         [Required] //ModelBinding Valdiation
         public DateTime FinishTime{get;set;}
@@ -18,5 +17,6 @@ namespace OrderManSys.Model
         [Required]
         public string OrderName{get;set;}
         public bool? Finished{get; set;} //True for Orders that's finished
+        public Product product{get;set;}
     }
 }
