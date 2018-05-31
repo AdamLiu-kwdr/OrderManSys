@@ -5,18 +5,18 @@ using System.Linq;
 using MySql.Data.MySqlClient;
 using Dapper;
 using OrderManSys.Model;
-using OrderManSys.Repository;
 
-//This class is for accessing Factory.Orders in database. Using Orders model class. !Class will be renamed in future!
+//This class is for accessing Factory.Log in database. Using Log.cs model class.
+//For providing unified access to database throughout whole system.
 //This class also implements IDBRepository interface. Have following function: GetAll,GetById,Get(Paraments),Create,Update,Delete
 
-namespace OrderManSys.Repository 
+namespace OrderManSys.Repository
 {
-    public class ProductRepo : IDBRepository<Product>
+    public class LogRepo : IDBRepository<Log>
     {
-        //Creating Connection string
+        //Creating Connection string. 
         private string ConnectionString;
-        public ProductRepo()
+        public LogRepo()
         {
             ConnectionString = "Uid=adam;Pwd=1996-1120*mariadb;Host=192.168.23.131;database=Factory;Character Set=utf8;port=3306;SslMode=none;";
             //Connection string should be moved to appsettings.json later.
@@ -30,26 +30,25 @@ namespace OrderManSys.Repository
             }
         }
 
-        //Will return ALL records in table  
-        public IEnumerable<Product> GetAll()
+        //Return ALL records in the Log table.
+        public IEnumerable<Log> GetAll()
         {
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 dbConnection.Open();
-                return dbConnection.Query<Product>("SELECT * FROM Product"); 
-                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Product>. 
+                return dbConnection.Query<Log>("SELECT * FROM Log"); 
             }
         }
 
-        //Return records in table where id=Product Id  
-        public Product GetbyId(int id)
+        //Search one record with id passed in. Return Null if nothing found.
+        public Log GetbyId(int id)
         {
             using(IDbConnection dbConnection = Connection)
             {
-                string sQuerry = "SELECT * FROM Product Where Id = @ID"; //Querry string
+                string sQuerry = "SELECT * FROM Log Where Id = @ID"; //Querry string
                 dbConnection.Open();
-                return dbConnection.Query<Product>(sQuerry,new{ID = id}).FirstOrDefault();
-                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Product>. 
+                return dbConnection.Query<Log>(sQuerry,new{ID = id}).FirstOrDefault();
+                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Log>. 
             }
         }
 
@@ -63,7 +62,7 @@ namespace OrderManSys.Repository
 
         DO NOT expose this function! SQL injection not protected.
         */
-        public IEnumerable<Product> Get(Dictionary<string,object> WhereParameters)
+        public IEnumerable<Log> Get(Dictionary<string,object> WhereParameters)
         {
             if (WhereParameters.Count == 0)
             {
@@ -73,7 +72,7 @@ namespace OrderManSys.Repository
             using(IDbConnection dbConnection = Connection)
             {
                 //Create the sql querry dynamically, this is the starter.
-                string sQuerry = @"select * from Product Where";
+                string sQuerry = @"select * from Log Where";
                 //The parameters to be added to the querry later.
                 DynamicParameters dp = new DynamicParameters();
 
@@ -94,18 +93,19 @@ namespace OrderManSys.Repository
                 }
                 //Console.WriteLine("[Debug](Querry):"+sQuerry);
                 dbConnection.Open();
-                return dbConnection.Query<Product>(sQuerry,dp).ToList();
+                return dbConnection.Query<Log>(sQuerry,dp).ToList();
             }
         }
 
-        //Create a new Product.
-        public void Create(Product entity)
+
+        //Create a new Log.
+        public void Create(Log entity)
         {
             using(IDbConnection dbConnection = Connection)
             {
                 //Querry
-                string sQuerry = "Insert Into Product(Id,ProductName,Description,Price)" +
-                    $"Values (@Id,@ProductName,@Description,@Price)";
+                string sQuerry = "Insert Into Log(ID,type,Author,Message,Time) " +
+                    $"Values (@ID,@type,@Author,@Message,@Time)";
                 dbConnection.Execute(sQuerry,entity);
             }
         }
@@ -115,22 +115,21 @@ namespace OrderManSys.Repository
         {
             using(IDbConnection dbConnection = Connection)
             {
-                string sQuerry = "DELETE from Product where id = @Id";
+                string sQuerry = "DELETE from Log where id = @Id";
                 dbConnection.Execute(sQuerry,new{Id = id});
             }
         }
 
         //Update Log.
-        public void Update(Product entity)
+        public void Update(Log entity)
         {
             using(IDbConnection dbConnection = Connection)
             {
                 //Querry
-                string sQuerry = "Update Product SET ProductName=@ProductName,Description=@Description,Price=@Price" +
-                    $" Where Id = @Id";
+                string sQuerry = "Update Log SET type=@type,Author=@Author,Message=@Message,Time=@Time" +
+                    $" Where ID = @ID";
                 dbConnection.Execute(sQuerry,entity);
             }
         }
-
     }
 }

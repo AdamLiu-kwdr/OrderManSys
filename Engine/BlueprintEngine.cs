@@ -4,18 +4,14 @@ using System.Linq;
 using OrderManSys.Model;
 using OrderManSys.Repository;
 
-namespace OrderManSys.Blueprint
+namespace OrderManSys.Engine
 {
     //This is the Analyze engine's code.
     //Engine will accept a Product type and return all the instruction at once. 
     //(If the production's instruction are registered in the database.)
     public class BlueprintEngine
     {
-        private readonly InstructionRepo instructionRepo;
-        public BlueprintEngine()
-        {
-            instructionRepo = new InstructionRepo();
-        }
+        private readonly InstructionRepo instructionRepo = new InstructionRepo();
 
         public IEnumerable<Instruction> GetRegistred(Product product)
         {

@@ -6,7 +6,7 @@ using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using OrderManSys.Model;
 using OrderManSys.Repository;
-using OrderManSys.Sequence;
+using OrderManSys.Engine;
 
 namespace OrderManSys.Controllers
 {
@@ -24,12 +24,8 @@ namespace OrderManSys.Controllers
     [Route("[controller]")]
     public class OrdersController : Controller
     {
-        //Depandancy Injection. Injecting OderRepo in Repository folder.
-        private readonly OrderRepo orderRepo;
-        public OrdersController() //Class constructer
-        {
-            orderRepo = new OrderRepo();
-        }
+        //Creating Repository instences
+        private readonly OrderRepo orderRepo = new OrderRepo();
 
         // [Get]/Order  Get all the Current Orders
         [HttpGet]

@@ -6,20 +6,16 @@ using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using OrderManSys.Model;
 using OrderManSys.Repository;
-using OrderManSys.Sequence;
+using OrderManSys.Engine;
 
 namespace OrderManSys.Controllers
 {
     public class ScheduleController : Controller
     {
-        //Depandancy Injection. Injecting OderRepo in Repository folder.
-        private readonly OrderRepo orderRepo;
-        private readonly ScheduleRepo scheduleRepo;
-        public ScheduleController() //Class constructer
-        {
-            orderRepo = new OrderRepo();
-            scheduleRepo = new ScheduleRepo();
-        }
+        //Creating Repository instences
+        private readonly OrderRepo orderRepo = new OrderRepo();
+        private readonly ScheduleRepo scheduleRepo = new ScheduleRepo();
+        private readonly InstructionRepo instructionrepo = new InstructionRepo();
 
         // [Get]/Schedule  Activate Scheduling engine, return schedule table.
         [HttpGet]
@@ -47,6 +43,13 @@ namespace OrderManSys.Controllers
         public IEnumerable<Schedule> GetAll()
         {
             return scheduleRepo.GetAll();
+        }
+
+        //Temp testing function, getting all Insturctions
+        [HttpGet("/Inst")]
+        public IEnumerable<Instruction> GetAllIns()
+        {
+            return instructionrepo.GetAll().OrderBy(x => x.id);
         }
 
     }

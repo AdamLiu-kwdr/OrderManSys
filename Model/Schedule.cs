@@ -7,9 +7,13 @@ namespace OrderManSys.Model
 {
     public class Schedule
     {
-        public int Id{get; set;} //Primary Ket
-        public bool? Working{get; set;} //True for Orders that's currently running by the production line
-        //Maps to Orders
+        public int Id{get; set;} //Primary Key
+
+        //True for Orders that's currently running by the production line
+        public bool? Working{get; set;} 
+        
+        //For recording currently finished products.
+        public int ProducedCount{get;set;}
         public Orders Orders{get; set;}
     }
 }
