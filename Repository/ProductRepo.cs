@@ -10,33 +10,34 @@ using OrderManSys.Repository;
 //This class is for accessing Factory.Orders in database. Using Orders model class. !Class will be renamed in future!
 //This class also implements IDBRepository interface. Have following function: GetAll,GetById,Get(Paraments),Create,Update,Delete
 
-namespace OrderManSys.Repository 
+namespace OrderManSys.Repository
 {
     public class ProductRepo : IDBRepository<Product>
     {
         //Creating Connection string
-        private string ConnectionString;
-        public ProductRepo()
+        private string _connectionstring;
+        public ProductRepo(string ConnectionString)
         {
-            ConnectionString = "Uid=adam;Pwd=1996-1120*mariadb;Host=192.168.23.131;database=Factory;Character Set=utf8;port=3306;SslMode=none;";
+            _connectionstring = ConnectionString;
             //Connection string should be moved to appsettings.json later.
         }
 
         //Create IdbConnection instance.
         public IDbConnection Connection
         {
-            get{
-                return new MySqlConnection(ConnectionString); //Connection Object created from Mysql.Data.MySqlClient
+            get
+            {
+                return new MySqlConnection(_connectionstring); //Connection Object created from Mysql.Data.MySqlClient
             }
         }
 
         //Will return ALL records in table  
         public IEnumerable<Product> GetAll()
         {
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 dbConnection.Open();
-                return dbConnection.Query<Product>("SELECT * FROM Product"); 
+                return dbConnection.Query<Product>("SELECT * FROM Product");
                 //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Product>. 
             }
         }
@@ -44,11 +45,11 @@ namespace OrderManSys.Repository
         //Return records in table where id=Product Id  
         public Product GetbyId(int id)
         {
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 string sQuerry = "SELECT * FROM Product Where Id = @ID"; //Querry string
                 dbConnection.Open();
-                return dbConnection.Query<Product>(sQuerry,new{ID = id}).FirstOrDefault();
+                return dbConnection.Query<Product>(sQuerry, new { ID = id }).FirstOrDefault();
                 //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Product>. 
             }
         }
@@ -63,17 +64,17 @@ namespace OrderManSys.Repository
 
         DO NOT expose this function! SQL injection not protected.
         */
-        public IEnumerable<Product> Get(Dictionary<string,object> WhereParameters)
+        public IEnumerable<Product> Get(Dictionary<string, object> WhereParameters)
         {
             if (WhereParameters.Count == 0)
             {
                 //throw exception if empty Dictionary is passed in (consider use GetAll()?)
                 throw new ArgumentNullException();
             }
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 //Create the sql querry dynamically, this is the starter.
-                string sQuerry = @"select * from Product Where";
+                string sQuerry = @"select * from Product p Where";
                 //The parameters to be added to the querry later.
                 DynamicParameters dp = new DynamicParameters();
 
@@ -85,8 +86,8 @@ namespace OrderManSys.Repository
                 var last = WhereParameters.Last();
                 foreach (var item in WhereParameters)
                 {
-                    sQuerry = sQuerry + $" O.{item.Key} = @{item.Key}";//new where clause.
-                    dp.Add($"{item.Key}",item.Value);//add new parameter in dp
+                    sQuerry = sQuerry + $" p.{item.Key} = @{item.Key}";//new where clause.
+                    dp.Add($"{item.Key}", item.Value);//add new parameter in dp
                     if (item.Key != last.Key) //No dulpicated key will occur because every key in dictionary is unique (C# rule)
                     {
                         sQuerry = sQuerry + " AND";
@@ -94,41 +95,41 @@ namespace OrderManSys.Repository
                 }
                 //Console.WriteLine("[Debug](Querry):"+sQuerry);
                 dbConnection.Open();
-                return dbConnection.Query<Product>(sQuerry,dp).ToList();
+                return dbConnection.Query<Product>(sQuerry, dp).ToList();
             }
         }
 
         //Create a new Product.
         public void Create(Product entity)
         {
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 //Querry
                 string sQuerry = "Insert Into Product(Id,ProductName,Description,Price)" +
                     $"Values (@Id,@ProductName,@Description,@Price)";
-                dbConnection.Execute(sQuerry,entity);
+                dbConnection.Execute(sQuerry, entity);
             }
         }
 
         //Delete a Log (Need test!) (Should I change to "IsDeleted?")
         public void Delete(int id)
         {
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 string sQuerry = "DELETE from Product where id = @Id";
-                dbConnection.Execute(sQuerry,new{Id = id});
+                dbConnection.Execute(sQuerry, new { Id = id });
             }
         }
 
         //Update Log.
         public void Update(Product entity)
         {
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 //Querry
                 string sQuerry = "Update Product SET ProductName=@ProductName,Description=@Description,Price=@Price" +
                     $" Where Id = @Id";
-                dbConnection.Execute(sQuerry,entity);
+                dbConnection.Execute(sQuerry, entity);
             }
         }
 

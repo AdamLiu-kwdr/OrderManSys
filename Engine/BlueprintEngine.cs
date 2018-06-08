@@ -11,7 +11,11 @@ namespace OrderManSys.Engine
     //(If the production's instruction are registered in the database.)
     public class BlueprintEngine
     {
-        private readonly InstructionRepo instructionRepo = new InstructionRepo();
+        private readonly InstructionRepo instructionRepo;
+        public BlueprintEngine(ConnectionStringOption options)
+        {
+            instructionRepo = new InstructionRepo(options.Factory);
+        }
 
         public IEnumerable<Instruction> GetRegistred(Product product)
         {

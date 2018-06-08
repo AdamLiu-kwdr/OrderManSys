@@ -14,17 +14,17 @@ namespace OrderManSys.Repository
     public class InstructionRepo
     {
         //Creating Connection string. 
-        private string ConnectionString;
-        public InstructionRepo()
+        private string _connectionstring;
+        public InstructionRepo(string ConnectionString)
         {
-            ConnectionString = "Uid=adam;Pwd=1996-1120*mariadb;Host=192.168.23.131;database=Factory;Character Set=utf8;port=3306;SslMode=none;";
-            //Connection string should be moved to appsettings.json later.
+            _connectionstring = ConnectionString;
         }
 
         public IDbConnection Connection
         {
-            get{
-                return new MySqlConnection(ConnectionString); //Connection Object created from Mysql.Data.MySqlClient
+            get
+            {
+                return new MySqlConnection(_connectionstring); //Connection Object created from Mysql.Data.MySqlClient
             }
         }
 
@@ -33,13 +33,13 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbConnection = Connection)
             {
-            //Selecting Instructions with it's corresponding parent table Products.
-            string sQuerry=@"select I.Step,I.Component,I.Action,I.Parameter,I.Id,
+                //Selecting Instructions with it's corresponding parent table Products.
+                string sQuerry = @"select I.Step,I.Component,I.Action,I.Parameter,I.Id,
                 P.Id,P.ProductName,P.Description,P.Price from Instruction I Inner JOIN Product P on I.Product=P.Id";
-            dbConnection.Open();
-            //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>, 
-            //Plus single Child object <Product> 
-            return dbConnection.Query<Instruction,Product,Instruction>(sQuerry,(I,P)=>{I.Product=P;return I;},splitOn:"Id").AsEnumerable();
+                dbConnection.Open();
+                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>, 
+                //Plus single Child object <Product> 
+                return dbConnection.Query<Instruction, Product, Instruction>(sQuerry, (I, P) => { I.Product = P; return I; }, splitOn: "Id").AsEnumerable();
             }
         }
 
@@ -48,13 +48,13 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbConnection = Connection)
             {
-            //Selecting Instructions with it's corresponding parent table Products.
-            string sQuerry=@"select I.Step,I.Component,I.Action,I.Parameter,I.Id,
+                //Selecting Instructions with it's corresponding parent table Products.
+                string sQuerry = @"select I.Step,I.Component,I.Action,I.Parameter,I.Id,
                 P.Id,P.ProductName,P.Description,P.Price from Instruction I Inner JOIN Product P on I.Product=P.Id WHERE I.Id = @InsId";
-            dbConnection.Open();
-            //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>, 
-            //Plus single Child object <Product> 
-            return dbConnection.Query<Instruction,Product,Instruction>(sQuerry,(I,P)=>{I.Product=P;return I;},new{InsId = id},splitOn:"Id").First();
+                dbConnection.Open();
+                //Dapper extened function in IdbConnection, Querry the database and serillize results accroding to type <Orders>, 
+                //Plus single Child object <Product> 
+                return dbConnection.Query<Instruction, Product, Instruction>(sQuerry, (I, P) => { I.Product = P; return I; }, new { InsId = id }, splitOn: "Id").First();
             }
         }
 
@@ -68,14 +68,14 @@ namespace OrderManSys.Repository
 
         DO NOT expose this function! SQL Inject vulnerable.
         */
-        public IEnumerable<Instruction> Get(Dictionary<string,object> WhereParameters)
+        public IEnumerable<Instruction> Get(Dictionary<string, object> WhereParameters)
         {
             if (WhereParameters.Count == 0)
             {
                 //throw exception if empty Dictionary is passed in (consider use GetAll()?)
                 throw new ArgumentNullException();
             }
-            using(IDbConnection dbConnection = Connection)
+            using (IDbConnection dbConnection = Connection)
             {
                 //Create the sql querry dynamically, this is the starter.
                 string sQuerry = @"select I.Step,I.Component,I.Action,I.Parameter,I.Id,
@@ -91,16 +91,16 @@ namespace OrderManSys.Repository
                 var last = WhereParameters.Last();
                 foreach (var item in WhereParameters)
                 {
-                    sQuerry = sQuerry + $" {item.Key} = @{item.Key}";//new where clause.
-                    dp.Add($"{item.Key}",item.Value);//add new parameter in dp
+                    sQuerry = sQuerry + $" I.{item.Key} = @{item.Key}";//new where clause.
+                    dp.Add($"{item.Key}", item.Value);//add new parameter in dp
                     if (item.Key != last.Key) //No dulpicated key will occur because every key in dictionary is unique (C# rule)
                     {
                         sQuerry = sQuerry + " AND";
                     }
                 }
-                
+
                 dbConnection.Open();
-                return dbConnection.Query<Instruction,Product,Instruction>(sQuerry,(I,P)=>{I.Product=P;return I;},dp,splitOn:"Id").AsEnumerable();
+                return dbConnection.Query<Instruction, Product, Instruction>(sQuerry, (I, P) => { I.Product = P; return I; }, dp, splitOn: "Id").AsEnumerable();
             }
         }
     }

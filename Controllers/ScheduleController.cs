@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using OrderManSys.Model;
 using OrderManSys.Repository;
 using OrderManSys.Engine;
@@ -13,9 +14,17 @@ namespace OrderManSys.Controllers
     public class ScheduleController : Controller
     {
         //Creating Repository instences
-        private readonly OrderRepo orderRepo = new OrderRepo();
-        private readonly ScheduleRepo scheduleRepo = new ScheduleRepo();
-        private readonly InstructionRepo instructionrepo = new InstructionRepo();
+        private readonly OrderRepo orderRepo;
+        private readonly ScheduleRepo scheduleRepo;
+        private readonly InstructionRepo instructionrepo;
+
+        //DI, injects connection strings
+        public ScheduleController(IOptions<ConnectionStringOption> conn)
+        {
+            orderRepo = new OrderRepo(conn.Value.Factory);
+            instructionrepo = new InstructionRepo(conn.Value.Factory);
+            scheduleRepo = new ScheduleRepo(conn.Value.Factory);
+        }
 
         // [Get]/Schedule  Activate Scheduling engine, return schedule table.
         [HttpGet]

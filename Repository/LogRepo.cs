@@ -3,6 +3,7 @@ using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using MySql.Data.MySqlClient;
+using Microsoft.Extensions.Options;
 using Dapper;
 using OrderManSys.Model;
 
@@ -14,19 +15,17 @@ namespace OrderManSys.Repository
 {
     public class LogRepo : IDBRepository<Log>
     {
-        //Creating Connection string. 
-        private string ConnectionString;
-        public LogRepo()
+        private readonly string _connectionstring;
+        public LogRepo(string ConnectionString)
         {
-            ConnectionString = "Uid=adam;Pwd=1996-1120*mariadb;Host=192.168.23.131;database=Factory;Character Set=utf8;port=3306;SslMode=none;";
-            //Connection string should be moved to appsettings.json later.
+            _connectionstring = ConnectionString;
         }
 
         //Create IdbConnection instance.
         public IDbConnection Connection
         {
             get{
-                return new MySqlConnection(ConnectionString); //Connection Object created from Mysql.Data.MySqlClient
+                return new MySqlConnection(_connectionstring); //Connection Object created from Mysql.Data.MySqlClient
             }
         }
 
@@ -72,7 +71,7 @@ namespace OrderManSys.Repository
             using(IDbConnection dbConnection = Connection)
             {
                 //Create the sql querry dynamically, this is the starter.
-                string sQuerry = @"select * from Log Where";
+                string sQuerry = @"select * from Log l Where";
                 //The parameters to be added to the querry later.
                 DynamicParameters dp = new DynamicParameters();
 
@@ -84,7 +83,7 @@ namespace OrderManSys.Repository
                 var last = WhereParameters.Last();
                 foreach (var item in WhereParameters)
                 {
-                    sQuerry = sQuerry + $" O.{item.Key} = @{item.Key}";//new where clause.
+                    sQuerry = sQuerry + $" l.{item.Key} = @{item.Key}";//new where clause.
                     dp.Add($"{item.Key}",item.Value);//add new parameter in dp
                     if (item.Key != last.Key) //No dulpicated key will occur because every key in dictionary is unique (C# rule)
                     {
