@@ -47,7 +47,7 @@ namespace OrderManSys.Controllers
             try
             {
                 //Use HttpClient to check if AutoMan service is up and running.
-                var response = comm.SendAsync("Digano", "CheckService", "").Result;
+                var response = comm.SendAsync("Diagno", "CheckService", "").Result;
                 //Ensure the response is successful (No timeout/not found.)
                 response.EnsureSuccessStatusCode();
             }
@@ -80,11 +80,11 @@ namespace OrderManSys.Controllers
         // List of things will happen here:
         // 1.Check if the execution successed. 
         // 2.Update current Schedule and check if there's still unfinished schedules need to run. 
-        // 3.Delete current Schedule if ProducedCount = order's quantity. 
+        // 3.Delete current Schedule if ProducedCount = order's quantity. And update Order.
         // 4.Write Log
         // 5.Redirect to Sned instructions action if contiune = true
-        [HttpPost("ResultReport")]
-        public IActionResult ResultReport([FromRoute]bool success, [FromRoute]bool Contiune)
+        [HttpGet("ResultReport")]
+        public IActionResult ResultReport([FromQuery(Name = "Success")]bool success, [FromQuery(Name = "Contiune")]bool Contiune)
         {
 
             logRepo.Create(new Log { Author = "CommunicationController@OrderManSys", type = "Info", Message = $"AutoManSys reported, checking result..." });
@@ -112,12 +112,22 @@ namespace OrderManSys.Controllers
             }
             else
             {
-
-                // 3.Delete current Schedule if ProducedCount = order's quantity.
+                // 3.Delete current Schedule if ProducedCount = order's quantity. And update Order.
                 currentSchedule.ProducedCount++;
-                if (currentSchedule.ProducedCount == currentSchedule.Orders.Quantity)
+                if (currentSchedule.ProducedCount >= currentSchedule.Orders.Quantity)
                 {
+                    //Current Schedule finished. Log.
+                    logRepo.Create(new Log { Author = "CommunicationController@OrderManSys", type = "Info", Message = $"AutoManSys reports execution successed. Finished execution current Schedule, for Order with Id:{currentSchedule.Orders.Id}" });
+                    
+                    //Update the order, set Finished to true.
+                    var currentOrder = orderRepo.GetbyId(currentSchedule.Orders.Id);
+                    currentOrder.Finished = true;
+                    orderRepo.Update(currentOrder);
+                    
+                    //Delete Schedule
                     scheRepo.Delete(currentSchedule.Id);
+                    
+                    
                     //Check if this is last schedule.
                     var nextSchedule = scheRepo.GetAll().First();
                     if (nextSchedule == null)

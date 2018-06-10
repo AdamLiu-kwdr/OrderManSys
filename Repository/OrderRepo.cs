@@ -14,10 +14,10 @@ namespace OrderManSys.Repository
     public class OrderRepo
     {
         //Creating Connection string. 
-        private readonly string _connectionstring;
+        private readonly string _connectionstring = null;
         public OrderRepo(string ConnectionString)
         {
-            ConnectionString = _connectionstring;
+            _connectionstring = ConnectionString;
         }
 
         //Create IdbConnection instance.
@@ -123,6 +123,29 @@ namespace OrderManSys.Repository
                     OrderTime = entity.OrderTime,
                     Finished = entity.Finished,
                     ProductId = entity.product.Id
+                });
+            }
+        }
+
+        //Update a single Order in database.
+        public void Update(Orders entity)
+        {
+            using (IDbConnection dbconnection = Connection)
+            {
+                dbconnection.Open();
+                //SQL querry, using UPDATE satatment to create records.
+                string sqlstr = "UPDATE Orders SET Product=@Product,Quantity=@Quantity,FinishTime=@FinishTime," +
+                "OrderName=@OrderName,OrderTime=@OrderTime,Finished=@Finished WHERE Id=@Id";
+
+                //Custom Object to handle ProductId mapping(need to configure Dapper custom mapping setting later.)
+                dbconnection.Execute(sqlstr, new{
+                    Id = entity.Id,
+                    Quantity = entity.Quantity,
+                    FinishTime = entity.FinishTime,
+                    OrderName = entity.OrderName,
+                    OrderTime = entity.OrderTime,
+                    Finished = entity.Finished,
+                    Product = entity.product.Id
                 });
             }
         }

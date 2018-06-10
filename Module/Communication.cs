@@ -16,14 +16,14 @@ namespace OrderManSys.Module
     //private static readonly HttpClient client = new HttpClient{BaseAddress=new Uri("")};
     public class Communication
     {
-        string OrderManSysAddress;
+        string AutoManSysAddress;
         LogRepo logrepo;
         HttpClient client = new HttpClient();
         HttpResponseMessage response = new HttpResponseMessage();
 
         public Communication(ConnectionStringOption conn)
         {
-            OrderManSysAddress = conn.OrderManSys;
+            AutoManSysAddress = conn.AutoManSys;
             logrepo = new LogRepo(conn.Factory);
         }
 
@@ -38,7 +38,7 @@ namespace OrderManSys.Module
             try
             {
                 //Construct the URL for HttpClient.
-                response = await client.PostAsync($"{OrderManSysAddress}{Controller}/{Action}", JsonContent);
+                response = await client.PostAsync($"{AutoManSysAddress}{Controller}/{Action}", JsonContent);
                 //Ensure the response is successful (No timeout/not found.)
                 response.EnsureSuccessStatusCode();
             }
@@ -54,7 +54,7 @@ namespace OrderManSys.Module
                 );
 
                 //Write error detail as Debug message.
-                Console.WriteLine($"[Debug]:Request failed when sending request to http://192.168.0.103/{Controller}/{Action} status code:{response.StatusCode}");
+                Console.WriteLine($"[Debug]:Request failed when sending request to {AutoManSysAddress}/{Controller}/{Action} status code:{response.StatusCode}");
                 throw e;
             }
             //Return OK with status code from AutoManSys (Should be 200!)
@@ -68,7 +68,7 @@ namespace OrderManSys.Module
             try
             {
                 //The fixed ip for now is 192.168.0.100, will move to appsettings.json later.
-                response = await client.GetAsync($"{OrderManSysAddress}{Controller}/{Action}{parameters}");
+                response = await client.GetAsync($"{AutoManSysAddress}{Controller}/{Action}{parameters}");
                 //Ensure the response is successful (No timeout/not found.)
                 response.EnsureSuccessStatusCode();
             }
@@ -85,6 +85,38 @@ namespace OrderManSys.Module
 
                 //Write error detail as Debug message.
                 Console.WriteLine($"[Debug]:Request failed when sending request to http://192.168.0.103/{Controller}/{Action}{parameters} status code:{response.StatusCode}");
+                throw e;
+            }
+            //Return OK with status code from AutoManSys (Should be 200!)
+            return response;
+        }
+
+        //Overloaded method for sending POST request, but with parameters.
+        public async Task<HttpResponseMessage> SendAsync(string Controller, string Action, object toSerialize, string parameters) //is object as parameter bad?
+        {
+
+            //Using HttpClient class to send http request.
+            var JsonContent = new StringContent(JsonConvert.SerializeObject(toSerialize), Encoding.UTF8, "application/json");
+            try
+            {
+                //Construct the URL for HttpClient.
+                response = await client.PostAsync($"{AutoManSysAddress}{Controller}/{Action}{parameters}", JsonContent);
+                //Ensure the response is successful (No timeout/not found.)
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                //Write Error to internal record
+                logrepo.Create(new Log
+                {
+                    type = "Warning",
+                    Author = "CommunicationModule@OrderManSys",
+                    Message = $"Connection to AutoManSys failed"
+                }
+                );
+
+                //Write error detail as Debug message.
+                Console.WriteLine($"[Debug]:Request failed when sending request to {AutoManSysAddress}/{Controller}/{Action}{parameters} status code:{response.StatusCode}");
                 throw e;
             }
             //Return OK with status code from AutoManSys (Should be 200!)

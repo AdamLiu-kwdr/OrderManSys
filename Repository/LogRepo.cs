@@ -102,6 +102,7 @@ namespace OrderManSys.Repository
         {
             using(IDbConnection dbConnection = Connection)
             {
+                entity.Time = DateTime.Now;
                 //Querry
                 string sQuerry = "Insert Into Log(ID,type,Author,Message,Time) " +
                     $"Values (@ID,@type,@Author,@Message,@Time)";

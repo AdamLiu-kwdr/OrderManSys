@@ -34,7 +34,7 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbConnection = Connection)
             {
-                string sQuerry = @"SELECT S.Working,S.OrderId,S.Id,O.Id,O.Quantity,O.FinishTime,O.OrderTime,O.Finished,O.OrderName from Schedule S
+                string sQuerry = @"SELECT S.Working,S.ProducedCount,S.OrderId,S.Id,O.Id,O.Quantity,O.FinishTime,O.OrderTime,O.Finished,O.OrderName from Schedule S
                     INNER JOIN Orders O ON S.OrderId = O.Id";
                 dbConnection.Open();
                 return dbConnection.Query<Schedule, Orders, Schedule>(sQuerry, (S, O) => { S.Orders = O; return S; }, splitOn: "Id").AsEnumerable();
@@ -47,7 +47,7 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbConnection = Connection)
             {
-                string sQuerry = @"SELECT S.Working,S.OrderId,S.Id,O.Id,O.Quantity,O.FinishTime,O.OrderTime,O.Finished,O.OrderName from Schedule S
+                string sQuerry = @"SELECT S.Working,S.ProducedCount,S.OrderId,S.Id,O.Id,O.Quantity,O.FinishTime,O.OrderTime,O.Finished,O.OrderName from Schedule S
                     INNER JOIN Orders O ON S.OrderId = O.Id WHERE S.Id = @SchId";
                 dbConnection.Open();
                 return dbConnection.Query<Schedule>(sQuerry, new { SchId = Id }).FirstOrDefault();
@@ -62,12 +62,13 @@ namespace OrderManSys.Repository
             {
                 dbconnection.Open();
                 //SQL querry, using Insert satatment to create records. (ID NEEDS TO START FROM 1!)
-                string sqlstr = "INSERT INTO Schedule(Id,Working,OrderId) VALUES (@Id,@Working,@OrderId);";
+                string sqlstr = "INSERT INTO Schedule(Id,Working,OrderId,ProducedCount) VALUES (@Id,@Working,@OrderId);";
                 dbconnection.Execute(sqlstr, new
                 {   //Custom Parameters set.
                     Id = schedule.Id,
                     Working = schedule.Working,
-                    OrderId = schedule.Orders.Id
+                    OrderId = schedule.Orders.Id,
+                    ProducedCount = schedule.ProducedCount
                 });
             }
         }
@@ -85,7 +86,8 @@ namespace OrderManSys.Repository
                         //Custom Parameters set.
                         Id = schedule.Id,
                         Working = schedule.Working,
-                        OrderId = schedule.Orders.Id
+                        OrderId = schedule.Orders.Id,
+                        ProducedCount = 0
                     });
                 }
 
@@ -102,9 +104,16 @@ namespace OrderManSys.Repository
             using (IDbConnection dbconnection = Connection)
             {
                 dbconnection.Open();
-                //SQL querry, using Insert satatment to create records. (ID NEEDS TO START FROM 1!)
-                string sqlstr = "UPDATE Schedule SET Working=@Working,OrderId=@OrderId WHERE Id=@Id";
-                dbconnection.Execute(sqlstr, schedule);
+                //SQL querry, using UPDATE satatment to create records. (ID NEEDS TO START FROM 1!)
+                string sqlstr = "UPDATE Schedule SET Working=@Working,OrderId=@OrderId,ProducedCount=@ProducedCount WHERE Id=@Id";
+
+                //Custom Object to handle OrderId mapping(need to configure Dapper custom mapping setting later.)
+                dbconnection.Execute(sqlstr, new{
+                    Id = schedule.Id,
+                    Working = schedule.Working,
+                    OrderId = schedule.Orders.Id,
+                    ProducedCount = schedule.ProducedCount
+                });
             }
         }
 

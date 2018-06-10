@@ -7,6 +7,6 @@ namespace OrderManSys
     public class ConnectionStringOption
     {
         public string Factory {get; set;}
-        public string OrderManSys {get;set;}
+        public string AutoManSys {get;set;}
     }
 }
