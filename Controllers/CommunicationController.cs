@@ -60,6 +60,43 @@ namespace OrderManSys.Controllers
             //Return OK with status code from AutoManSys (Should be 200!)
             return Ok(Response.StatusCode);
         }
+        
+        //Send first instruction set to AutoMan and starts working.
+        //Location:[Host]/Run
+        //1.Get next schedule in database
+        //2.get the instructions for scheduled product.
+        //3.Send to AutoManSys.
+        [HttpGet("Run")]
+        public IActionResult RunSchedule([FromQuery(Name = "Contiune")]bool ContiuneMode)
+        {
+            //1.Get next schedule in database
+            var nextSchedule = scheRepo.GetAll().First();
+
+            //Console.WriteLine($"[Debug]:Current Schedule:{nextSchedule.Id}");
+            //Console.WriteLine($"[Debug]:Current OdersId:{orderRepo.GetbyId(nextSchedule.Orders.Id).product.Id}");
+
+            //2.get the instructions for scheduled product.
+            var QuerryParameters = new Dictionary<string,object>();
+            //Querry the Id insted of product itself, should adjust dapper's mapping setting later.
+            //Also, result from Schedule repo only return Orders, not Orders with product. so querry the order in Order repo first, then querry the product id.
+            QuerryParameters.Add("Product",orderRepo.GetbyId(nextSchedule.Orders.Id).product.Id); 
+            var InstructionSets = instrepo.Get(QuerryParameters);
+
+            //Yes, there's always gonna be a product haven't register it's instruction yet.
+            if (InstructionSets.Count() == 0)
+            {
+                return BadRequest($"Instruction unfound for product:{orderRepo.GetbyId(nextSchedule.Orders.Id).product.ProductName}");
+            }
+
+            //Console.WriteLine($"[Debug]:Running Instructions for:{InstructionSets.First().Product.ProductName}");
+
+            //3.Send to AutoManSys.
+            logRepo.Create(new Log { Author = "CommunicationController@OrderManSys", type = "Info", Message = "Sending AutoManSys Instructions." });
+            Task.WaitAll(comm.SendAsync("InstructionRunner","Execute",InstructionSets,$"?Contiune={ContiuneMode}"));
+
+            return Accepted($"First running Schedule Id:{nextSchedule.Id}");
+        }
+
 
         //This method is for AutoManSys ONLY (or other process in future), to report a log.
         [HttpPost("LogReport")]
@@ -147,6 +184,8 @@ namespace OrderManSys.Controllers
                 }
             }
 
+            //Console.WriteLine($"[Debug]:Contiune mode: {Contiune}");
+
             // 4.Write Log
             logRepo.Create(new Log { Author = "CommunicationController@OrderManSys", type = "Info", Message = "AutoManSys reports execution successed." });
 
@@ -154,8 +193,9 @@ namespace OrderManSys.Controllers
             // (Means We're running all the schedules in the databast and there's still schedule need to run)
             if (Contiune == true)
             {
+                //Console.WriteLine("[DEBUG]Redirecting to run.");
                 //send automansys NEXT instructions.
-                RedirectToAction("", "");// Need to fill in the Send action.
+                return RedirectToAction("RunSchedule",new{Contiune = true});
             }
 
             return Ok();

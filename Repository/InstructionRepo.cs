@@ -79,7 +79,7 @@ namespace OrderManSys.Repository
             {
                 //Create the sql querry dynamically, this is the starter.
                 string sQuerry = @"select I.Step,I.Component,I.Action,I.Parameter,I.Id,
-                P.Id,P.ProductName,P.Description,P.Price from Instruction I Inner JOIN Product P on I.Product=P.Id WHERE I.Id = @InsId WHERE";
+                P.Id,P.ProductName,P.Description,P.Price from Instruction I Inner JOIN Product P on I.Product=P.Id WHERE";
                 //The parameters to be added to the querry later.
                 DynamicParameters dp = new DynamicParameters();
 
@@ -98,7 +98,6 @@ namespace OrderManSys.Repository
                         sQuerry = sQuerry + " AND";
                     }
                 }
-
                 dbConnection.Open();
                 return dbConnection.Query<Instruction, Product, Instruction>(sQuerry, (I, P) => { I.Product = P; return I; }, dp, splitOn: "Id").AsEnumerable();
             }
