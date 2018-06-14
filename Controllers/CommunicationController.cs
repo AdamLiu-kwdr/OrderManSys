@@ -20,6 +20,7 @@ namespace OrderManSys.Controllers
     {
         private readonly ConnectionStringOption _connectionstring;
         private readonly Communication comm;
+        private readonly BlueprintEngine BluePrint;
         private readonly OrderRepo orderRepo;
         private readonly LogRepo logRepo;
         private readonly InstructionRepo instrepo;
@@ -36,6 +37,7 @@ namespace OrderManSys.Controllers
             orderRepo = new OrderRepo(_connectionstring.Factory);
             productRepo = new ProductRepo(_connectionstring.Factory);
             scheRepo = new ScheduleRepo(_connectionstring.Factory);
+            BluePrint = new BlueprintEngine(_connectionstring);
         }
 
         //Check AutoManSys status
@@ -64,7 +66,7 @@ namespace OrderManSys.Controllers
         //Send first instruction set to AutoMan and starts working.
         //Location:[Host]/Run
         //1.Get next schedule in database
-        //2.get the instructions for scheduled product.
+        //2.get the instructions for scheduled product from BluePrintEngine.
         //3.Send to AutoManSys.
         [HttpGet("Run")]
         public IActionResult RunSchedule([FromQuery(Name = "Contiune")]bool ContiuneMode)
@@ -72,22 +74,8 @@ namespace OrderManSys.Controllers
             //1.Get next schedule in database
             var nextSchedule = scheRepo.GetAll().First();
 
-            //Console.WriteLine($"[Debug]:Current Schedule:{nextSchedule.Id}");
-            //Console.WriteLine($"[Debug]:Current OdersId:{orderRepo.GetbyId(nextSchedule.Orders.Id).product.Id}");
-
-            //2.get the instructions for scheduled product.
-            var QuerryParameters = new Dictionary<string,object>();
-            //Querry the Id insted of product itself, should adjust dapper's mapping setting later.
-            //Also, result from Schedule repo only return Orders, not Orders with product. so querry the order in Order repo first, then querry the product id.
-            QuerryParameters.Add("Product",orderRepo.GetbyId(nextSchedule.Orders.Id).product.Id); 
-            var InstructionSets = instrepo.Get(QuerryParameters);
-
-            //Yes, there's always gonna be a product haven't register it's instruction yet.
-            if (InstructionSets.Count() == 0)
-            {
-                return BadRequest($"Instruction unfound for product:{orderRepo.GetbyId(nextSchedule.Orders.Id).product.ProductName}");
-            }
-
+            //2.get the instructions for scheduled product from BluePrintEngine.
+            var InstructionSets = BluePrint.GetRegistred(orderRepo.GetbyId(nextSchedule.Orders.Id).product);
             //Console.WriteLine($"[Debug]:Running Instructions for:{InstructionSets.First().Product.ProductName}");
 
             //3.Send to AutoManSys.

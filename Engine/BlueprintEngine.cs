@@ -19,9 +19,17 @@ namespace OrderManSys.Engine
 
         public IEnumerable<Instruction> GetRegistred(Product product)
         {
-            var parameters = new Dictionary<string,object>();
-            parameters.Add("product",1);
-            return(instructionRepo.Get(parameters));
+            var QuerryParameters = new Dictionary<string,object>();
+            QuerryParameters.Add("Product",product.Id); 
+            var InstructionSets = instructionRepo.Get(QuerryParameters);
+
+            //If the product haven't register it's instruction yet. 
+            if (InstructionSets.Count() == 0)
+            {
+                throw new ArgumentException($"Product: {product.ProductName} is not registered in BluePrint Engine.");
+            }
+
+            return(InstructionSets);
         }
     }
 }
