@@ -6,7 +6,7 @@ namespace OrderManSys
 {
     public class ConnectionStringOption
     {
-        public string Factory {get; set;}
-        public string AutoManSys {get;set;}
+        public string Factory {get; set;} //Database connection string
+        public string AutoManSys {get;set;} //Automan api address
     }
 }

@@ -150,13 +150,20 @@ namespace OrderManSys.Repository
             }
         }
 
-        //Delete a order (Need test!) (Should I change to "IsDeleted?")
+        //Delete a order (Need test!) (Should I change to "IsDeleted?" => probably not. Right now this is an internal storge.)
         public void Delete(int id)
         {
             using (IDbConnection dbConnection = Connection)
             {
-                string sQuerry = "DELETE from Orders where id = @Id";
-                dbConnection.Execute(sQuerry, new { Id = id });
+                try
+                {
+                    string sQuerry = "DELETE from Orders where id = @Id";
+                    dbConnection.Execute(sQuerry, new { Id = id });   
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
             }
         }
     }

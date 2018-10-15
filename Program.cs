@@ -19,7 +19,7 @@ namespace OrderManSys
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseUrls("http://*:5000/") //Production ONLY
+                .UseUrls("http://*:5000/")
                 .UseKestrel()
                 .UseStartup<Startup>()
                 .Build();

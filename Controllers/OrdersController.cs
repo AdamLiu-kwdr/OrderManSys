@@ -75,10 +75,25 @@ namespace OrderManSys.Controllers
             Parameters.Add("OrderTime", order.OrderTime);
             Parameters.Add("OrderName", order.OrderName);
             return Created($"/Orders/{orderRepo.Get(Parameters).First().Id}", null);
+        }
 
+        // [Delete] /Order/id  delete the Order with id
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+                try
+                {
+                    orderRepo.Delete(id);
+                }
+                catch (Exception e)
+                {
+                    return StatusCode(202,e.Message.ToString());
+                }
+            return Ok();
         }
 
         //Testing function for orderRepo's dynamic query.
+        // !!Internal test only!!
         [HttpGet("Dynamic")]
         public IEnumerable<Orders> Get()
         {

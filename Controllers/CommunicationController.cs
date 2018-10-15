@@ -40,9 +40,32 @@ namespace OrderManSys.Controllers
             BluePrint = new BlueprintEngine(_connectionstring);
         }
 
-        //Check AutoManSys status
+        //Check Connection to automan, Won't initalize sensors so it's much faster.
+        //Location:[Host]/CheckConnection
+        [Route("/CheckConnection")]
+        public IActionResult CheckConnection()
+        {
+           //send http request.
+            try
+            {
+                //Use HttpClient to check if AutoMan service is up and running.
+                var response = comm.SendAsync("InstructionRunner", "CheckService", "").Result;
+                //Ensure the response is successful (No timeout/not found.)
+                response.EnsureSuccessStatusCode();
+            }
+            catch (System.Exception)
+            {
+                //If CheckService request failed, return 503 Service Unavailable.
+                //Don't Write log to database from here, Communication module already does that.
+                return StatusCode(503,"Connection timeout");
+            }
+            //Return OK with status code from AutoManSys (Should be 200!)
+            return Ok("Automan:" + Response.StatusCode.ToString());
+        }
+        
+        //Check AutoManSys' Lego status (Will initalize Automan's sensors too.)
         //Location:[Host]/CheckService
-        [HttpGet("CheckService")]
+        [Route("CheckService")]
         public IActionResult CheckService()
         {
             //send http request.
@@ -57,10 +80,10 @@ namespace OrderManSys.Controllers
             {
                 //If CheckService request failed, return 503 Service Unavailable.
                 //Don't Write log to database from here, Communication module already does that.
-                return StatusCode(503);
+                return StatusCode(503,"Connection timeout");
             }
             //Return OK with status code from AutoManSys (Should be 200!)
-            return Ok(Response.StatusCode);
+            return Ok("Automan:" + Response.StatusCode.ToString());
         }
         
         //Send first instruction set to AutoMan and starts working.
@@ -68,7 +91,8 @@ namespace OrderManSys.Controllers
         //1.Get next schedule in database
         //2.get the instructions for scheduled product from BluePrintEngine.
         //3.Send to AutoManSys.
-        [HttpGet("Run")]
+        [HttpGet]
+        [Route("/Run")]
         public IActionResult RunSchedule([FromQuery(Name = "Contiune")]bool ContiuneMode)
         {
             //1.Get next schedule in database
@@ -189,7 +213,8 @@ namespace OrderManSys.Controllers
             return Ok();
         }
 
-        [HttpGet("Instruct")]
+        [HttpGet]
+        [Route("Instruct")]
         //DeBug Method, get all the current registreted instructions.
         public IEnumerable<Instruction> Get()
         {

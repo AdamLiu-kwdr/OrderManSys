@@ -11,6 +11,7 @@ using OrderManSys.Engine;
 
 namespace OrderManSys.Controllers
 {
+    [Route("/Schedule")]
     public class ScheduleController : Controller
     {
         //Creating Repository instences
@@ -26,9 +27,9 @@ namespace OrderManSys.Controllers
             scheduleRepo = new ScheduleRepo(conn.Value.Factory);
         }
 
-        // [Get]/Schedule  Activate Scheduling engine, return schedule table.
+        // [Get]/Schedule  Activate Scheduling engine, will flush old schedules and return new schedules.
         [HttpGet]
-        [Route("/Schedule")]
+        [Route("/Generate")]
         public IEnumerable<Schedule> RunSequence()
         {
             //Get all the current unfinished orders
@@ -52,13 +53,6 @@ namespace OrderManSys.Controllers
         public IEnumerable<Schedule> GetAll()
         {
             return scheduleRepo.GetAll();
-        }
-
-        //Temp testing function, getting all Insturctions
-        [HttpGet("/Inst")]
-        public IEnumerable<Instruction> GetAllIns()
-        {
-            return instructionrepo.GetAll().OrderBy(x => x.id);
         }
 
     }

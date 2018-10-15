@@ -1,0 +1,28 @@
+API document: 2018/10/01
+-
+This is the Orderman API's defentition. For user.
+Internal functions are skipped.
+-
+
+Order Controller: For managing the internal order datas
+
+[Get]    /Order            Get all the Current Orders
+[Get]    /Order/{id}       Get the Order from id
+[Post]   /Order            Create new Order (Need testing.)
+[Delete] /Order/{id}       Delete an Order (Need testing.)
+
+================================================
+
+Schedule Controller: For Creating all the production schedules.
+
+[Get] /Schedule                  Return all current schedules
+[Get] /Schedule/Generate         Activate Scheduling engine, will flush old schedules and return new schedules.
+
+================================================
+
+Communication Controller: For communicate with AutoMan.
+
+[Get] /CheckConnection  Check Connection to automan, Won't initalize sensors so it's much faster.
+[Get] /CheckService     Check AutoManSys' Lego status (Will initalize Automan's sensors too.)
+[Get] /Run              Send first instruction set (querry from first schedule) to AutoMan and starts working.
+[GET] /Instruct         DeBug Method, get all the current registreted instructions.
