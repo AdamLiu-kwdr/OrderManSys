@@ -19,10 +19,11 @@ namespace OrderManSys.Controllers
     GetAll  [Get] Order
     GetByid [Get] Order/id
     Create [Post] Order/Create
-    (Test) Dynamic [Get] Order/Dynamic
+    Delete [Delete] /Order/id 
+    (DEBUG) Dynamic [Get] Order/Dynamic
     */
 
-    [Route("[controller]")]
+    [Route("/Order")]
     public class OrdersController : Controller
     {
         //Creating Repository instences
@@ -61,7 +62,7 @@ namespace OrderManSys.Controllers
                 //Return 403 If model binding failed.
                 return BadRequest(ModelState);
             }
-
+            
             //Creating custom Datetime.Now Because Dapper will drop ticks when converting Datetime, causing error. >Need better soulution.
             DateTime TheUnwated = DateTime.Now.Date.AddHours(DateTime.Now.Hour).AddMinutes(DateTime.Now.Minute).AddSeconds(DateTime.Now.Second);
 
@@ -87,9 +88,13 @@ namespace OrderManSys.Controllers
                 }
                 catch (Exception e)
                 {
-                    return StatusCode(202,e.Message.ToString());
+                    if (e.GetType() == typeof(KeyNotFoundException))
+                    {
+                        return NotFound(e.Message);
+                    }
+                    return StatusCode(500,e.Message.ToString());
                 }
-            return Ok();
+            return Accepted();
         }
 
         //Testing function for orderRepo's dynamic query.

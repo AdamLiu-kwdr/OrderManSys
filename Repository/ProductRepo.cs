@@ -104,29 +104,45 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbConnection = Connection)
             {
-                //Querry
+                //Querry, DB will handle Id
                 string sQuerry = "Insert Into Product(Id,ProductName,Description,Price)" +
                     $"Values (@Id,@ProductName,@Description,@Price)";
                 dbConnection.Execute(sQuerry, entity);
             }
         }
 
-        //Delete a Log (Need test!) (Should I change to "IsDeleted?")
+        //Delete a Product (Need test!) (Should I change to "IsDeleted?")
         public void Delete(int id)
         {
             using (IDbConnection dbConnection = Connection)
             {
                 string sQuerry = "DELETE from Product where id = @Id";
-                dbConnection.Execute(sQuerry, new { Id = id });
+                //Check affectedRows for delete result.
+                int affectedRows = dbConnection.Execute(sQuerry, new { Id = id });
+                if (affectedRows == 0)
+                {
+                    throw new KeyNotFoundException($"No recrod found with id: {id}");
+                }
             }
         }
 
-        //Update Log.
+        //Update Product.
         public void Update(Product entity)
         {
             using (IDbConnection dbConnection = Connection)
             {
-                //Querry
+                
+
+                //Check if product alreadt exits
+                Product currentIndex = this.GetbyId(entity.Id);
+                if (currentIndex == null)
+                {
+                    //redirect to Create if non exits, and escape.
+                    this.Create(entity);
+                    return;
+                }
+
+                //Execute Update querry
                 string sQuerry = "Update Product SET ProductName=@ProductName,Description=@Description,Price=@Price" +
                     $" Where Id = @Id";
                 dbConnection.Execute(sQuerry, entity);

@@ -17,6 +17,7 @@ namespace OrderManSys.Model
         [Required]
         public string OrderName{get;set;}
         public bool? Finished{get; set;} //True for Orders that's finished
+        [Required]
         public Product product{get;set;}
     }
 }

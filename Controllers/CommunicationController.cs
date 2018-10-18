@@ -15,6 +15,7 @@ using OrderManSys.Repository;
 namespace OrderManSys.Controllers
 {
     //This controller is for communcting between OrderMan and AutoMan. So bascailly it's more like a communcation class.
+    //Yes, it's pretty big.
     [Route("[controller]")]
     public class CommunicationController : Controller
     {
@@ -65,7 +66,7 @@ namespace OrderManSys.Controllers
         
         //Check AutoManSys' Lego status (Will initalize Automan's sensors too.)
         //Location:[Host]/CheckService
-        [Route("CheckService")]
+        [Route("/CheckService")]
         public IActionResult CheckService()
         {
             //send http request.
@@ -214,7 +215,7 @@ namespace OrderManSys.Controllers
         }
 
         [HttpGet]
-        [Route("Instruct")]
+        [Route("/Instruct")]
         //DeBug Method, get all the current registreted instructions.
         public IEnumerable<Instruction> Get()
         {

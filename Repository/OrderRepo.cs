@@ -155,14 +155,12 @@ namespace OrderManSys.Repository
         {
             using (IDbConnection dbConnection = Connection)
             {
-                try
+                string sQuerry = "DELETE from Orders where id = @Id";
+                int affectedRows = dbConnection.Execute(sQuerry, new { Id = id });
+                //Check affectedRows for delete result.
+                if (affectedRows == 0)
                 {
-                    string sQuerry = "DELETE from Orders where id = @Id";
-                    dbConnection.Execute(sQuerry, new { Id = id });   
-                }
-                catch (Exception e)
-                {
-                    throw e;
+                    throw new KeyNotFoundException($"No recrod found with id: {id}");
                 }
             }
         }

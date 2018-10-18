@@ -28,8 +28,7 @@ namespace OrderManSys.Controllers
         }
 
         // [Get]/Schedule  Activate Scheduling engine, will flush old schedules and return new schedules.
-        [HttpGet]
-        [Route("/Generate")]
+        [HttpGet("Generate")]
         public IEnumerable<Schedule> RunSequence()
         {
             //Get all the current unfinished orders
