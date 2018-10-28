@@ -9,7 +9,8 @@ using OrderManSys.Model;
 
 //This class is for accessing Factory.Log in database. Using Log.cs model class.
 //For providing unified access to database throughout whole system.
-//This class also implements IDBRepository interface. Have following function: GetAll,GetById,Get(Paraments),Create,Update,Delete
+//This class also implements IDBRepository interface. Have following function: GetAll,GetById,Get,Create (Warning: Update and Delete is not supported!) 
+//Note: Because Log table contains too many records. All sql is limited to return first 100 results.
 
 namespace OrderManSys.Repository
 {
@@ -35,7 +36,7 @@ namespace OrderManSys.Repository
             using (IDbConnection dbConnection = Connection)
             {
                 dbConnection.Open();
-                return dbConnection.Query<Log>("SELECT * FROM Log"); 
+                return dbConnection.Query<Log>("SELECT * FROM Log ORDER BY Time DESC LIMIT 100"); 
             }
         }
 
@@ -91,6 +92,7 @@ namespace OrderManSys.Repository
                     }
                 }
                 //Console.WriteLine("[Debug](Querry):"+sQuerry);
+                sQuerry = sQuerry + " ORDER BY Time DESC LIMIT 100"; //Limit to first 100 results.
                 dbConnection.Open();
                 return dbConnection.Query<Log>(sQuerry,dp).ToList();
             }
@@ -110,26 +112,24 @@ namespace OrderManSys.Repository
             }
         }
 
-        //Delete a Log (Need test!) (Should I change to "IsDeleted?")
+        //Delete Log is not allowed! why would you do that?
+        //Function placed to support interface
         public void Delete(int id)
         {
-            using(IDbConnection dbConnection = Connection)
-            {
-                string sQuerry = "DELETE from Log where id = @Id";
-                dbConnection.Execute(sQuerry,new{Id = id});
-            }
+            // using(IDbConnection dbConnection = Connection)
+            // {
+            //     string sQuerry = "DELETE from Log where id = @Id";
+            //     dbConnection.Execute(sQuerry,new{Id = id});
+            // }
+            throw new NotSupportedException("Deleteing log is not supported.");
+            
         }
 
-        //Update Log.
+        //NO LOG UPDATE! why would you do that?
+        //Function placed to support interface
         public void Update(Log entity)
         {
-            using(IDbConnection dbConnection = Connection)
-            {
-                //Querry
-                string sQuerry = "Update Log SET type=@type,Author=@Author,Message=@Message,Time=@Time" +
-                    $" Where ID = @ID";
-                dbConnection.Execute(sQuerry,entity);
-            }
+            throw new NotSupportedException("Log modification is not supported.");
         }
     }
 }

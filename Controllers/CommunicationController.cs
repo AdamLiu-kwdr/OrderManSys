@@ -87,6 +87,13 @@ namespace OrderManSys.Controllers
             return Ok("Automan:" + Response.StatusCode.ToString());
         }
         
+        //Return Log by takeQuantity parament (default:10)
+        [HttpGet("/Log")]
+        public IEnumerable<Log> GetLog(int takeQuantity = 10)
+        {
+            return logRepo.GetAll().Take(takeQuantity);
+        }
+
         //Send first instruction set to AutoMan and starts working.
         //Location:[Host]/Run
         //1.Get next schedule in database
@@ -105,8 +112,14 @@ namespace OrderManSys.Controllers
 
             //3.Send to AutoManSys.
             logRepo.Create(new Log { Author = "CommunicationController@OrderManSys", type = "Info", Message = "Sending AutoManSys Instructions." });
-            Task.WaitAll(comm.SendAsync("InstructionRunner","Execute",InstructionSets,$"?Contiune={ContiuneMode}"));
+            
+            HttpResponseMessage response = new HttpResponseMessage(); 
+            response = comm.SendAsync("InstructionRunner","Execute",InstructionSets,$"?Contiune={ContiuneMode}").Result;
 
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode(503,response.Content.ToString());   
+            }
             return Accepted($"First running Schedule Id:{nextSchedule.Id}");
         }
 

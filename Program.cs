@@ -21,6 +21,13 @@ namespace OrderManSys
             WebHost.CreateDefaultBuilder(args)
                 .UseUrls("http://*:5000/")
                 .UseKestrel()
+                .ConfigureAppConfiguration((builderContext, config) =>
+                {
+                    //Adding different JSON file accroding to different enviorment.
+                IHostingEnvironment env = builderContext.HostingEnvironment;
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
+                })
                 .UseStartup<Startup>()
                 .Build();
     }

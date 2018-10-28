@@ -19,12 +19,14 @@ namespace OrderManSys
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public IConfiguration Configuration { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Add CORS header. so broswer will send the request. 
             services.AddCors();
+
             services.AddMvc();
             services.AddOptions();
             services.Configure<ConnectionStringOption>(Configuration.GetSection("ConnectionStrings"));
@@ -33,7 +35,8 @@ namespace OrderManSys
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseCors(builder => builder.WithOrigins("http://localhost:4200"));
+            //Use Cors from appsettings.json
+            app.UseCors(builder => builder.WithOrigins(Configuration["CorsAddress"]));
             app.UseMvc();
         }
     }

@@ -1,0 +1,86 @@
+
+===============================================
+OrderMan管理系統API
+
+日期:2018/10/17
+===============================================
+
+
+Order API:管理OrderMan內部訂單系統的API，排程表會由內部訂單產生
+
+HTTP方法  路由
+[Get]     /Order            取得現在所有輸入的訂單
+[Get]     /Order/{id}       以id查詢特定訂單
+[Post]    /Order            匯入新訂單，請用JSON格式輸入訂單內容
+[Delete]  /Order/{id}       以ID來刪除特定訂單
+
+================================================
+
+Product API:用來匯入、修改和刪除Orderman內部產品的資料庫
+
+[Get] /Product		取得現在所有儲存的商品資料
+[Get] /Product/{id}	以id查詢特定商品
+[Post] /Product		註冊新產品
+[PUT]  /Product/{id}	更新產品，如果沒有就註冊
+[Delete] /Product/{id}	刪除產品
+
+================================================
+
+Schedule API:用來管理排程表的API。
+
+[Get] /Schedule                  取得現在排程表的所有內容
+[Get] /Schedule/Generate         產生新的排程表(會清空現有排成表)
+
+================================================
+
+Communication API: 和生產線溝通的API
+
+[Get] /CheckConnection  確認生產線和伺服器的連線狀態。
+[Get] /CheckService     確認生產線的目前狀態，同時還會初始化感應器。(!!啟動生產線前一定要先呼叫!!)
+[Get] /Run              (先呼叫CheckService!)啟動生產線，叫法請參考底下
+
+
+================================================
+
+-
+
+/RUN的叫法
+http://(IP位址):5000/Run?(Contiune=False)
+Contiune:自動模式，設成TRUE會讓生產線持續運轉直到排程表跑完為止，設成False只會跑一個訂單。
+	 不要在現場展示的時候設定成True，會跑很久，預設是False。
+
+-
+
+匯入新訂單的JSON格式範例
+{
+    
+"quantity": (訂單數量，現場展示請全部寫1),
+    
+"finishTime":"(完成期限，在這個時間前要完成 YYYY-MM-DD)",
+    
+"orderName":"(訂購人姓名)",
+    
+"product":{"id":(產品ID)}
+
+}
+
+-
+匯入新商品的格式範例
+{
+"ProductName":"商品名稱",
+	
+"Description":"商品描述",
+"Price":商品價格
+}
+
+(更新與註冊的格式一樣，ID寫在網址即可)
+
+-
+簡易故障排除
+
+看一下OrderMan回復的狀態碼
+404: OrderMan找不到API，請檢查網址 (大小寫有分)
+415: 沒設Content-Type，請把Content-Type設成json/application
+400: OrderMan看不懂這個格式，請檢查Post上去的格式 (有東西少打嗎?)
+503: 生產線斷線了，請找我處理。
+500: 我不知道你怎麼辦到的，請找我處理。
