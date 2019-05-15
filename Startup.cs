@@ -36,7 +36,7 @@ namespace OrderManSys
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             //Use Cors from appsettings.json
-            app.UseCors(builder => builder.WithOrigins(Configuration["CorsAddress"]));
+            app.UseCors(builder => builder.WithOrigins(Configuration["CorsAddress"]).AllowAnyMethod().WithHeaders("content-type"));
             app.UseMvc();
         }
     }

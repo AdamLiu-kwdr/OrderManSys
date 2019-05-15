@@ -114,12 +114,16 @@ namespace OrderManSys.Controllers
             logRepo.Create(new Log { Author = "CommunicationController@OrderManSys", type = "Info", Message = "Sending AutoManSys Instructions." });
             
             HttpResponseMessage response = new HttpResponseMessage(); 
-            response = comm.SendAsync("InstructionRunner","Execute",InstructionSets,$"?Contiune={ContiuneMode}").Result;
-
-            if (!response.IsSuccessStatusCode)
+            
+            try
             {
-                return StatusCode(503,response.Content.ToString());   
+                response = comm.SendAsync("InstructionRunner","Execute",InstructionSets,$"?Contiune={ContiuneMode}").Result;   
             }
+            catch (Exception)
+            {
+                return StatusCode(503,"Lego is busy");       
+            }
+
             return Accepted($"First running Schedule Id:{nextSchedule.Id}");
         }
 
