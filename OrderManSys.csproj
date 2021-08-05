@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RuntimeFrameworkVersion>2.0.9</RuntimeFrameworkVersion> 
+
     <RuntimeIdentifiers>win10-x64;linux-x64;</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="wwwroot\"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6"/>
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0"/>
     <PackageReference Include="Dapper" Version="1.50.4"/>
     <PackageReference Include="MySql.Data" Version="8.0.10-rc"/>
   </ItemGroup>
